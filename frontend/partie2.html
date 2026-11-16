@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TP07 - Partie 2</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
+</head>
+<body>
+<nav>
+  <span class="brand">Vue.js &nbsp; Pays et villes</span>
+  <div class="links">
+    <a href="partie1.html" >Partie 1</a>
+    <a href="partie2.html" class="active">Partie 2</a>
+    <a href="partie3.html" >Partie 3</a>
+  </div>
+</nav>
+<div id="app" class="card">
+  <h1>Pays et villes</h1>
+  <p class="hint">Sélectionnez un pays et une ville.</p>
+
+  <label for="pays">Pays</label>
+  <select id="pays" v-model="idPays" @change="chargerVilles">
+    <option value="" disabled>-- Choisir un pays --</option>
+    <option v-for="p in pays" :key="p.id_pays" :value="p.id_pays">{{ p.nom }}</option>
+  </select>
+
+  <label for="ville">Ville</label>
+  <select id="ville" v-model="idVille" :disabled="!idPays">
+    <option value="" disabled>-- Choisir une ville --</option>
+    <option v-for="v in villes" :key="v.id_ville" :value="v.id_ville">{{ v.nom }}</option>
+  </select>
+
+  <div v-if="erreur" class="msg err">{{ erreur }}</div>
+</div>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+  data() {
+    return { pays: [], villes: [], idPays: '', idVille: '', erreur: '' };
+  },
+  mounted() {
+    this.chargerPays();
+  },
+  methods: {
+    async chargerPays() {
+      try {
+        const r = await fetch('../backend/pays.php');
+        this.pays = await r.json();
+      } catch (e) {
+        this.erreur = 'Impossible de charger les pays.';
+      }
+    },
+    async chargerVilles() {
+      this.idVille = '';   // aucune ville sélectionnée par défaut
+      this.villes = [];
+      try {
+        const r = await fetch('../backend/villes.php?id_pays=' + this.idPays);
+        this.villes = await r.json();
+      } catch (e) {
+        this.erreur = 'Impossible de charger les villes.';
+      }
+    }
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

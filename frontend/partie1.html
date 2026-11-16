@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TP07 - Partie 1</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
+</head>
+<body>
+<nav>
+  <span class="brand">Vue.js &nbsp; Pays et villes</span>
+  <div class="links">
+    <a href="partie1.html" class="active">Partie 1</a>
+    <a href="partie2.html" >Partie 2</a>
+    <a href="partie3.html" >Partie 3</a>
+  </div>
+</nav>
+<div id="app" class="card">
+  <h1>Rechercher un pays par son identifiant</h1>
+
+  <form @submit.prevent="rechercher" novalidate>
+    <label for="id">Identifiant du pays</label>
+    <input id="id" v-model="idSaisi" placeholder="Ex : 1">
+    <button type="submit" :disabled="chargement">Rechercher</button>
+  </form>
+
+  <div v-if="erreur" class="msg err">{{ erreur }}</div>
+  <div v-if="resultat" class="msg ok">Pays trouvé : <strong>{{ resultat }}</strong></div>
+</div>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+  data() {
+    return { idSaisi: '', resultat: '', erreur: '', chargement: false };
+  },
+  methods: {
+    async rechercher() {
+      this.resultat = '';
+      this.erreur = '';
+      const valeur = this.idSaisi.trim();
+
+      // Vérifications côté frontend : la requête n'est pas envoyée si invalide
+      if (valeur === '') {
+        this.erreur = "Veuillez saisir l'identifiant du pays.";
+        return;
+      }
+      if (!/^-?\d+$/.test(valeur)) {
+        this.erreur = "L'identifiant doit être un nombre entier.";
+        return;
+      }
+
+      this.chargement = true;
+      try {
+        const reponse = await fetch('../backend/partie1_pays_par_id.php?id=' + encodeURIComponent(valeur));
+        const data = await reponse.json();
+
+        if (data.success) {
+          this.resultat = data.nom;
+        } else {
+          this.erreur = "Le pays n'a pas été trouvé.";
+        }
+      } catch (e) {
+        this.erreur = 'Erreur de communication avec le serveur.';
+      } finally {
+        this.chargement = false;
+      }
+    }
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
